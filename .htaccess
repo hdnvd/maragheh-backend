@@ -1,0 +1,13 @@
+# Only used when the domain's document root is THIS folder (not public/).
+# Best setup is still: document root = .../public — then this file is never read.
+# Everything is routed into public/, so .env, vendor/, storage/ etc. are never served.
+
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>

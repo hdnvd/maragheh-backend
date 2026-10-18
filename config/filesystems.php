@@ -38,9 +38,11 @@ return [
             'report' => false,
         ],
 
+        // Uploads live directly in public/storage, so shared hosts that block symlink()
+        // (no `php artisan storage:link`) can still serve them. `app:deploy` creates the folder.
         'public' => [
             'driver' => 'local',
-            'root' => storage_path('app/public'),
+            'root' => public_path('storage'),
             'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
             'visibility' => 'public',
             'throw' => false,
@@ -73,8 +75,6 @@ return [
     |
     */
 
-    'links' => [
-        public_path('storage') => storage_path('app/public'),
-    ],
+    'links' => [],
 
 ];

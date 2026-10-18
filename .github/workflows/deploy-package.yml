@@ -1,0 +1,52 @@
+# Builds an upload-ready zip (with vendor/) for cPanel hosts that have no Terminal/Composer.
+# Download it from: GitHub → Actions → latest "Deploy package" run → Artifacts.
+name: Deploy package
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, gd, curl, dom, fileinfo, pdo_mysql, pdo_sqlite
+          tools: composer:v2
+          coverage: none
+
+      - name: Install production dependencies
+        run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-progress
+
+      - name: Smoke test (migrate on SQLite, list routes)
+        run: |
+          cp .env.example .env
+          sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=sqlite/; s#^DB_DATABASE=.*#DB_DATABASE=/tmp/ci.sqlite#' .env
+          touch /tmp/ci.sqlite
+          php artisan key:generate --force
+          php artisan app:deploy
+          php artisan route:list --path=v1 | tail -3
+          php artisan optimize:clear
+          rm .env
+
+      - name: Build zip
+        run: |
+          mkdir -p /tmp/out
+          zip -r -q /tmp/out/maragheh-backend.zip . \
+            -x '.git/*' '.github/*' 'tests/*' 'node_modules/*' \
+               '.env' 'database/*.sqlite' 'public/storage/*' \
+               'storage/logs/*.log' 'storage/framework/cache/data/*' \
+               'storage/framework/sessions/*' 'storage/framework/views/*.php' \
+               'bootstrap/cache/*.php' 'phpunit.xml'
+          ls -lh /tmp/out
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: maragheh-backend-${{ github.run_number }}
+          path: /tmp/out/maragheh-backend.zip
+          retention-days: 30

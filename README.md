@@ -10,58 +10,80 @@
 
 ---
 
-## 1. Backend (Laravel) on cPanel
+## 1. Backend (Laravel) on cPanel — no Terminal needed
 
-### 1.1 Create the database
-cPanel → **MySQL® Databases**: create a database and a user, add the user to the database with **ALL PRIVILEGES**.
+Composer can't run on the server, so GitHub builds a ready-to-upload zip (with `vendor/`), and the
+one-off setup commands run through a **temporary cron job**.
 
-> `backend/.env` and `backend/database/database.sqlite` in this folder are a **local test setup** (SQLite, test admin
-> `admin@maraghecity.ir` / `TestPass123`). Do not upload them; create the server `.env` from `.env.example` as below.
-> `composer.json` pins `config.platform.php = 8.2.0`, so `composer install` resolves packages that run on PHP 8.2–8.4.
+> `backend/.env`, `backend/database/database.sqlite` and any `backend.zip` you made yourself on this PC are a
+> **local test setup** (debug mode, SQLite, test admin). **Never upload them** — always use the zip from GitHub Actions.
 
-### 1.2 Upload the code
-1. Upload the `backend/` folder **outside** `public_html`, e.g. `/home/USER/maragheh-api`.
-   - If you build locally, run `composer install --no-dev --optimize-autoloader` first and upload with `vendor/`.
-   - Or, if cPanel has **Terminal**, upload without `vendor/` and run the same command there.
-2. cPanel → **Domains** → `api.maraghecity.ir` → set the **Document Root** to `/home/USER/maragheh-api/public`.
-3. cPanel → **MultiPHP Manager**: PHP **8.2+** for the subdomain. Required extensions (Select PHP Version → Extensions):
-   `pdo_mysql, mbstring, openssl, tokenizer, xml, ctype, fileinfo, gd, curl, dom, exif` (exif optional, fixes photo rotation).
-4. Enable **SSL** (AutoSSL / Let's Encrypt) for `api.maraghecity.ir` and `admin.maraghecity.ir`.
+### 1.1 One-time cPanel setup
+1. **MySQL® Databases**: create a database and a user, add the user to the database with **ALL PRIVILEGES**.
+   Note the full names (cPanel prefixes them, e.g. `cpuser_maragheh`).
+2. **MultiPHP Manager**: PHP **8.2 or newer** for `api.maraghecity.ir`.
+   **Select PHP Version → Extensions**: `pdo_mysql, mbstring, openssl, tokenizer, xml, ctype, fileinfo, gd, curl, dom`
+   (+ `exif`, optional, fixes photo rotation).
+3. **Domains** → `api.maraghecity.ir` → **Document Root** = `/home/USER/maragheh-api/public`
+   (USER = your cPanel username). If your host doesn't let you change it, use the folder it gives you instead of
+   `maragheh-api` — the included root `.htaccess` routes everything into `public/` and blocks `.env`.
+4. **SSL/TLS Status**: run AutoSSL for `api.maraghecity.ir` and `admin.maraghecity.ir`.
 
-### 1.3 Configure
-```bash
-cd ~/maragheh-api
-cp .env.example .env
-php artisan key:generate
+### 1.2 Get the deploy package
+GitHub → **hdnvd/maragheh-backend → Actions → "Deploy package"** → newest green run → **Artifacts** →
+download `maragheh-backend-N` (it is built automatically on every push; unzip it once on your PC to get
+`maragheh-backend.zip`).
+
+### 1.3 Upload
+1. **File Manager** → create `/home/USER/maragheh-api` → **Upload** `maragheh-backend.zip` → right-click → **Extract**
+   → delete the zip.
+2. In that folder, copy `.env.example` to `.env` (enable *Settings → Show Hidden Files*) and **Edit** it:
+   - `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` — from step 1.1
+   - `KAVENEGAR_API_KEY`, `KAVENEGAR_TEMPLATE` — see 1.8
+   - leave `APP_KEY=` empty (it is generated in the next step) and keep `APP_ENV=production`, `APP_DEBUG=false`.
+
+### 1.4 Run the setup once (temporary cron job)
+**Cron Jobs → Add New Cron Job**, *Common Settings: Once Per Minute*, command:
 ```
-Edit `.env`: `DB_*`, `KAVENEGAR_API_KEY`, `KAVENEGAR_TEMPLATE` (see 1.6).
-
-```bash
-php artisan migrate --force
-php artisan db:seed --force          # adds the Mehr News «مراغه» tag source
-php artisan storage:link             # public URLs for uploaded photos
-php artisan admin:create you@example.com --name="مدیر"   # asks for a password
-php artisan config:cache && php artisan route:cache
-php artisan news:crawl               # first import; prints "خبرگزاری مهر: N new"
+cd /home/USER/maragheh-api && /usr/local/bin/php artisan app:deploy --admin-email=you@example.com --admin-password=ChooseAStrongPass >> storage/logs/deploy.log 2>&1
 ```
+Wait 1–2 minutes, open `storage/logs/deploy.log` in File Manager — it must end with
+**`Deploy finished.`** — then **delete this cron job** (it would keep resetting the admin password).
+`app:deploy` generates `APP_KEY`, runs migrations, adds the Mehr News source, creates the admin,
+prepares `public/storage` for uploads (no symlink needed) and caches config/routes. Change the admin
+password afterwards in the panel (**تغییر رمز عبور**).
 
-> If `storage:link` fails because `symlink()` is disabled on your host, create the link with the cPanel File Manager or ask the host to run it:
-> `ln -s /home/USER/maragheh-api/storage/app/public /home/USER/maragheh-api/public/storage`
+> PHP path: `/usr/local/bin/php` works on most cPanel servers. If `deploy.log` stays empty or says
+> *not found*, try `/usr/local/bin/ea-php82` or `/opt/cpanel/ea-php82/root/usr/bin/php`.
 
-### 1.4 Cron job (news crawler)
-cPanel → **Cron Jobs** → *Once Per Minute* (`* * * * *`):
+Check: `https://api.maraghecity.ir/v1/sources` should return `{"data":[{"id":1,"name":"خبرگزاری مهر"}]}`.
+
+### 1.5 Permanent cron job (news crawler)
+**Cron Jobs** → *Once Per Minute*:
 ```
 cd /home/USER/maragheh-api && /usr/local/bin/php artisan schedule:run >> /dev/null 2>&1
 ```
-The scheduler then runs `news:crawl` every 30 minutes (plus daily cleanup). Check the PHP path with `which php` in Terminal; on some hosts it is `/opt/cpanel/ea-php82/root/usr/bin/php`.
+It fetches Mehr News every 30 minutes (plus daily cleanup). You can also fetch immediately from the admin
+panel → **منابع خبری → دریافت اکنون**.
 
-### 1.5 Crawler notes
+### 1.6 Updating later
+Download the newest artifact, upload and extract it over `/home/USER/maragheh-api` (overwrite). Your
+`.env` and the uploaded photos in `public/storage/` are not in the zip, so they are kept. Then run the
+1.4 cron job again **without** the `--admin-…` options:
+```
+cd /home/USER/maragheh-api && /usr/local/bin/php artisan app:deploy >> storage/logs/deploy.log 2>&1
+```
+and delete it after `Deploy finished.` appears.
+
+> Configuration is cached, so after **any edit to `.env`** run that same `app:deploy` cron job once more.
+
+### 1.7 Crawler notes
 - Source: `https://www.mehrnews.com/tag/مراغه` — the list page plus each new article (title, lead, body, photo, exact publish time).
 - More sources (another Mehr tag or any RSS feed with an optional keyword filter) can be added in the admin panel → **منابع خبری**.
 - `NEWS_STORE_FULL_BODY=false` stores only title/summary/photo and the app links to the original article. **Check Mehr News' republishing terms**; the app always shows the source name and a «مشاهده در منبع خبر» link.
 - Hiding/“deleting” a news item in the panel keeps it in the DB as hidden so the crawler won't import it again.
 
-### 1.6 Kavenegar OTP
+### 1.8 Kavenegar OTP
 panel.kavenegar.com → **ارسال پیامک با الگو (Verify Lookup)** → create a template, e.g. name `maragheh-otp`:
 ```
 کد ورود شما به اپلیکیشن مراغه: %token
@@ -69,7 +91,7 @@ panel.kavenegar.com → **ارسال پیامک با الگو (Verify Lookup)** 
 After it is approved, put the template name in `KAVENEGAR_TEMPLATE` and your API key in `KAVENEGAR_API_KEY`.
 With `APP_ENV=local` and no key, codes are written to `storage/logs` instead of being sent (development only).
 
-### 1.7 API overview (`/v1`)
+### 1.9 API overview (`/v1`)
 | Method | Path | Notes |
 |---|---|---|
 | GET | `home` | weather + 5 news + attractions + celebrities + photos |
