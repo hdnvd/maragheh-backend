@@ -1,0 +1,51 @@
+<?php
+
+return [
+    'accepted' => ':attribute باید پذیرفته شود.',
+    'array' => ':attribute باید آرایه باشد.',
+    'between' => [
+        'numeric' => ':attribute باید بین :min و :max باشد.',
+        'string' => ':attribute باید بین :min و :max کاراکتر باشد.',
+    ],
+    'boolean' => ':attribute باید درست یا نادرست باشد.',
+    'confirmed' => 'تکرار :attribute مطابقت ندارد.',
+    'current_password' => 'رمز عبور فعلی اشتباه است.',
+    'date_format' => ':attribute با قالب :format مطابقت ندارد.',
+    'email' => ':attribute باید یک ایمیل معتبر باشد.',
+    'file' => ':attribute باید یک فایل باشد.',
+    'image' => ':attribute باید تصویر باشد.',
+    'in' => ':attribute انتخاب‌شده معتبر نیست.',
+    'integer' => ':attribute باید عدد صحیح باشد.',
+    'max' => [
+        'array' => ':attribute نباید بیش از :max مورد داشته باشد.',
+        'file' => 'حجم :attribute نباید بیشتر از :max کیلوبایت باشد.',
+        'numeric' => ':attribute نباید بزرگ‌تر از :max باشد.',
+        'string' => ':attribute نباید بیشتر از :max کاراکتر باشد.',
+    ],
+    'mimes' => ':attribute باید یکی از این قالب‌ها باشد: :values.',
+    'min' => [
+        'numeric' => ':attribute نباید کمتر از :min باشد.',
+        'string' => ':attribute نباید کمتر از :min کاراکتر باشد.',
+    ],
+    'numeric' => ':attribute باید عدد باشد.',
+    'required' => 'وارد کردن :attribute الزامی است.',
+    'string' => ':attribute باید متن باشد.',
+    'url' => ':attribute باید یک آدرس معتبر باشد.',
+    'uploaded' => 'بارگذاری :attribute ناموفق بود.',
+
+    'attributes' => [
+        'name' => 'نام',
+        'email' => 'ایمیل',
+        'password' => 'رمز عبور',
+        'phone' => 'شماره موبایل',
+        'code' => 'کد تایید',
+        'title' => 'عنوان',
+        'url' => 'آدرس',
+        'type' => 'نوع',
+        'image' => 'عکس',
+        'images' => 'تصاویر',
+        'reason' => 'دلیل',
+        'latitude' => 'عرض جغرافیایی',
+        'longitude' => 'طول جغرافیایی',
+    ],
+];
