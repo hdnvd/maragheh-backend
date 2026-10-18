@@ -21,7 +21,8 @@ one-off setup commands run through a **temporary cron job**.
 ### 1.1 One-time cPanel setup
 1. **MySQL® Databases**: create a database and a user, add the user to the database with **ALL PRIVILEGES**.
    Note the full names (cPanel prefixes them, e.g. `cpuser_maragheh`).
-2. **MultiPHP Manager**: PHP **8.2 or newer** for `api.maraghecity.ir`.
+2. **MultiPHP Manager**: tick `api.maraghecity.ir` → select **PHP 8.3** → Apply (the server default 8.1 is too old for
+   Laravel 12; 8.2 or 8.4 also work — then use `ea-php82` / `ea-php84` instead of `ea-php83` in the cron commands below).
    **Select PHP Version → Extensions**: `pdo_mysql, mbstring, openssl, tokenizer, xml, ctype, fileinfo, gd, curl, dom`
    (+ `exif`, optional, fixes photo rotation).
 3. **Domains** → `api.maraghecity.ir` → **Document Root** = `/home/USER/maragheh-api/public`
@@ -45,7 +46,7 @@ download `maragheh-backend-N` (it is built automatically on every push; unzip it
 ### 1.4 Run the setup once (temporary cron job)
 **Cron Jobs → Add New Cron Job**, *Common Settings: Once Per Minute*, command:
 ```
-cd /home/USER/maragheh-api && /usr/local/bin/php artisan app:deploy --admin-email=you@example.com --admin-password=ChooseAStrongPass >> storage/logs/deploy.log 2>&1
+cd /home/USER/maragheh-api && /opt/cpanel/ea-php83/root/usr/bin/php artisan app:deploy --admin-email=you@example.com --admin-password=ChooseAStrongPass >> storage/logs/deploy.log 2>&1
 ```
 Wait 1–2 minutes, open `storage/logs/deploy.log` in File Manager — it must end with
 **`Deploy finished.`** — then **delete this cron job** (it would keep resetting the admin password).
@@ -53,25 +54,28 @@ Wait 1–2 minutes, open `storage/logs/deploy.log` in File Manager — it must e
 prepares `public/storage` for uploads (no symlink needed) and caches config/routes. Change the admin
 password afterwards in the panel (**تغییر رمز عبور**).
 
-> PHP path: `/usr/local/bin/php` works on most cPanel servers. If `deploy.log` stays empty or says
-> *not found*, try `/usr/local/bin/ea-php82` or `/opt/cpanel/ea-php82/root/usr/bin/php`.
+> Cron jobs must name the PHP version explicitly: the plain `/usr/local/bin/php` uses the server default (8.1) and
+> fails with *"Composer detected issues in your platform … PHP >= 8.2"*. If `deploy.log` says the path is
+> *not found*, try `/usr/local/bin/ea-php83`.
 
 Check: `https://api.maraghecity.ir/v1/sources` should return `{"data":[{"id":1,"name":"خبرگزاری مهر"}]}`.
 
 ### 1.5 Permanent cron job (news crawler)
 **Cron Jobs** → *Once Per Minute*:
 ```
-cd /home/USER/maragheh-api && /usr/local/bin/php artisan schedule:run >> /dev/null 2>&1
+cd /home/USER/maragheh-api && /opt/cpanel/ea-php83/root/usr/bin/php artisan schedule:run >> /dev/null 2>&1
 ```
 It fetches Mehr News every 30 minutes (plus daily cleanup). You can also fetch immediately from the admin
 panel → **منابع خبری → دریافت اکنون**.
 
 ### 1.6 Updating later
 Download the newest artifact, upload and extract it over `/home/USER/maragheh-api` (overwrite). Your
-`.env` and the uploaded photos in `public/storage/` are not in the zip, so they are kept. Then run the
+`.env` and the uploaded photos in `public/storage/` are not in the zip, so they are kept.
+Extracting replaces `public/.htaccess`, where cPanel may store the domain's PHP version — open **MultiPHP Manager**
+afterwards and check `api.maraghecity.ir` still shows PHP 8.3 (re-apply it if not). Then run the
 1.4 cron job again **without** the `--admin-…` options:
 ```
-cd /home/USER/maragheh-api && /usr/local/bin/php artisan app:deploy >> storage/logs/deploy.log 2>&1
+cd /home/USER/maragheh-api && /opt/cpanel/ea-php83/root/usr/bin/php artisan app:deploy >> storage/logs/deploy.log 2>&1
 ```
 and delete it after `Deploy finished.` appears.
 
