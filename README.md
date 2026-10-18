@@ -5,8 +5,8 @@
 | Part | Folder | Tech | Hosted at |
 |---|---|---|---|
 | Android app | `android/` | Java, Material 3, Retrofit, Glide | Cafebazaar (`com.sweetsoft`) |
-| API + crawler | `backend/` | Laravel 12, MySQL, Sanctum | `https://api.maraghecity.ir/v1` |
-| Admin panel | `admin/` | Angular 22, Angular Material (RTL) | `https://admin.maraghecity.ir` |
+| API + crawler | `backend/` | Laravel 12, MySQL, Sanctum | `https://api.maraghehcity.ir/v1` |
+| Admin panel | `admin/` | Angular 22, Angular Material (RTL) | `https://admin.maraghehcity.ir` |
 
 ---
 
@@ -21,14 +21,14 @@ one-off setup commands run through a **temporary cron job**.
 ### 1.1 One-time cPanel setup
 1. **MySQL® Databases**: create a database and a user, add the user to the database with **ALL PRIVILEGES**.
    Note the full names (cPanel prefixes them, e.g. `cpuser_maragheh`).
-2. **MultiPHP Manager**: tick `api.maraghecity.ir` → select **PHP 8.3** → Apply (the server default 8.1 is too old for
+2. **MultiPHP Manager**: tick `api.maraghehcity.ir` → select **PHP 8.3** → Apply (the server default 8.1 is too old for
    Laravel 12; 8.2 or 8.4 also work — then use `ea-php82` / `ea-php84` instead of `ea-php83` in the cron commands below).
    **Select PHP Version → Extensions**: `pdo_mysql, mbstring, openssl, tokenizer, xml, ctype, fileinfo, gd, curl, dom`
    (+ `exif`, optional, fixes photo rotation).
-3. **Domains** → `api.maraghecity.ir` → **Document Root** = `/home/USER/maragheh-api/public`
+3. **Domains** → `api.maraghehcity.ir` → **Document Root** = `/home/USER/maragheh-api/public`
    (USER = your cPanel username). If your host doesn't let you change it, use the folder it gives you instead of
    `maragheh-api` — the included root `.htaccess` routes everything into `public/` and blocks `.env`.
-4. **SSL/TLS Status**: run AutoSSL for `api.maraghecity.ir` and `admin.maraghecity.ir`.
+4. **SSL/TLS Status**: run AutoSSL for `api.maraghehcity.ir` and `admin.maraghehcity.ir`.
 
 ### 1.2 Get the deploy package
 GitHub → **hdnvd/maragheh-backend → Actions → "Deploy package"** → newest green run → **Artifacts** →
@@ -58,7 +58,7 @@ password afterwards in the panel (**تغییر رمز عبور**).
 > fails with *"Composer detected issues in your platform … PHP >= 8.2"*. If `deploy.log` says the path is
 > *not found*, try `/usr/local/bin/ea-php83`.
 
-Check: `https://api.maraghecity.ir/v1/sources` should return `{"data":[{"id":1,"name":"خبرگزاری مهر"}]}`.
+Check: `https://api.maraghehcity.ir/v1/sources` should return `{"data":[{"id":1,"name":"خبرگزاری مهر"}]}`.
 
 > **If `deploy.log` shows a migration `FAIL`**, the database is left half-created and the next run fails with
 > *"Table … already exists"*. Fix the cause, then in **phpMyAdmin** select the database → tick **all** tables →
@@ -77,7 +77,7 @@ panel → **منابع خبری → دریافت اکنون**.
 Download the newest artifact, upload and extract it over `/home/USER/maragheh-api` (overwrite). Your
 `.env` and the uploaded photos in `public/storage/` are not in the zip, so they are kept.
 Extracting replaces `public/.htaccess`, where cPanel may store the domain's PHP version — open **MultiPHP Manager**
-afterwards and check `api.maraghecity.ir` still shows PHP 8.3 (re-apply it if not). Then run the
+afterwards and check `api.maraghehcity.ir` still shows PHP 8.3 (re-apply it if not). Then run the
 1.4 cron job again **without** the `--admin-…` options:
 ```
 cd /home/USER/maragheh-api && /opt/cpanel/ea-php83/root/usr/bin/php artisan app:deploy >> storage/logs/deploy.log 2>&1
@@ -121,9 +121,9 @@ Limits: OTP request 5 per 10 min per IP and 1 per 2 min per phone; 10 photo uplo
 ```bash
 cd admin
 npm ci
-npm run build            # uses src/environments/environment.prod.ts → https://api.maraghecity.ir/v1
+npm run build            # uses src/environments/environment.prod.ts → https://api.maraghehcity.ir/v1
 ```
-Upload **the contents of** `admin/dist/admin/browser/` to the document root of `admin.maraghecity.ir`.
+Upload **the contents of** `admin/dist/admin/browser/` to the document root of `admin.maraghehcity.ir`.
 The included `.htaccess` handles HTTPS redirect and Angular routes.
 
 Local development: `php artisan serve` in `backend/` (with `APP_ENV=local`) and `npm start` in `admin/` → http://localhost:4200.

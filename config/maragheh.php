@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'admin_url' => env('ADMIN_URL', 'https://admin.maraghecity.ir'),
+    'admin_url' => env('ADMIN_URL', 'https://admin.maraghehcity.ir'),
 
     'otp' => [
         'length' => (int) env('OTP_LENGTH', 5),

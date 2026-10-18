@@ -5,7 +5,7 @@ use App\Http\Controllers\Api;
 use Illuminate\Support\Facades\Route;
 
 /*
- * All routes are served under https://api.maraghecity.ir/v1/...
+ * All routes are served under https://api.maraghehcity.ir/v1/...
  */
 
 // ---- Public (Android app) ----
