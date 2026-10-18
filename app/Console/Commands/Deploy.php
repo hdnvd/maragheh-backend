@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Throwable;
@@ -32,11 +33,17 @@ class Deploy extends Command
             $this->call('migrate', ['--force' => true]);
             $this->call('db:seed', ['--force' => true]);
 
+            // Only creates a missing admin. A forgotten every-minute cron job must not reset the password
+            // or revoke the panel's login tokens (admin:create does both for existing accounts).
             if ($email = $this->option('admin-email')) {
-                $this->call('admin:create', [
-                    'email' => $email,
-                    '--password' => $this->option('admin-password'),
-                ]);
+                if (User::where('email', strtolower($email))->exists()) {
+                    $this->line("Admin {$email} already exists — left unchanged.");
+                } else {
+                    $this->call('admin:create', [
+                        'email' => $email,
+                        '--password' => $this->option('admin-password'),
+                    ]);
+                }
             }
 
             $this->call('optimize:clear');

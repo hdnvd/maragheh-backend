@@ -50,6 +50,10 @@ cd /home/USER/maragheh-api && /opt/cpanel/ea-php83/root/usr/bin/php artisan app:
 ```
 Wait 1–2 minutes, open `storage/logs/deploy.log` in File Manager — it must end with
 **`Deploy finished.`** — then **delete this cron job** (it would keep resetting the admin password).
+> If the admin panel keeps logging you out after a minute or two, this cron job is still running —
+> delete it. (Newer packages only create a *missing* admin, so a leftover job no longer resets the
+> password or logs you out, but it still re-runs migrations and caches every minute.)
+
 `app:deploy` generates `APP_KEY`, runs migrations, adds the Mehr News source, creates the admin,
 prepares `public/storage` for uploads (no symlink needed) and caches config/routes. Change the admin
 password afterwards in the panel (**تغییر رمز عبور**).

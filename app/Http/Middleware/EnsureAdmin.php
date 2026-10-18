@@ -13,7 +13,7 @@ class EnsureAdmin
     public function handle(Request $request, Closure $next): Response
     {
         if (! $request->user() instanceof User) {
-            return response()->json(['message' => 'دسترسی غیرمجاز'], 403);
+            return response()->json(['message' => 'دسترسی غیرمجاز'], 401);
         }
 
         return $next($request);
