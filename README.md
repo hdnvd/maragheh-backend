@@ -60,6 +60,11 @@ password afterwards in the panel (**تغییر رمز عبور**).
 
 Check: `https://api.maraghecity.ir/v1/sources` should return `{"data":[{"id":1,"name":"خبرگزاری مهر"}]}`.
 
+> **If `deploy.log` shows a migration `FAIL`**, the database is left half-created and the next run fails with
+> *"Table … already exists"*. Fix the cause, then in **phpMyAdmin** select the database → tick **all** tables →
+> *Drop*, and run the cron job again. (Tables are created as InnoDB with 191-char indexed strings, so hosts whose
+> MySQL defaults to MyISAM — error *1071 Specified key was too long; max key length is 1000 bytes* — work.)
+
 ### 1.5 Permanent cron job (news crawler)
 **Cron Jobs** → *Once Per Minute*:
 ```

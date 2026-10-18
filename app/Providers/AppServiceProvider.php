@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -16,6 +17,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // utf8mb4 × 191 chars = 764 bytes: fits the index-key limits of older MySQL/MyISAM shared hosting.
+        Schema::defaultStringLength(191);
+
         // Named limiters each get their own key; "throttle:10,5"-style limits would all share one per-IP counter.
         $tooMany = fn (string $message) => fn () => response()->json(['message' => $message], 429);
 

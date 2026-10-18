@@ -42,7 +42,7 @@ return new class extends Migration
         Schema::create('news', function (Blueprint $table) {
             $table->id();
             $table->foreignId('news_source_id')->constrained()->cascadeOnDelete();
-            $table->string('external_id', 191);
+            $table->string('external_id', 150); // (150×4 bytes + bigint) fits a 767-byte index
             $table->string('title', 500);
             $table->text('summary')->nullable();
             $table->longText('body')->nullable();
